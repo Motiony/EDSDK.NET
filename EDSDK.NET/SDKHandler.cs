@@ -1,13 +1,10 @@
-﻿using System;
+﻿using SkiaSharp;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Drawing;
-using System.Threading;
-using System.Globalization;
-using System.Drawing.Imaging;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-
+using System.Threading;
 using static EDSDKLib.EDSDK;
 
 namespace EDSDK.NET
@@ -111,7 +108,7 @@ namespace EDSDK.NET
         public delegate void CameraAddedHandler();
         public delegate void ProgressHandler(int Progress);
         public delegate void StreamUpdate(Stream img);
-        public delegate void BitmapUpdate(Bitmap bmp);
+        public delegate void BitmapUpdate(SKBitmap bmp);
 
         /// <summary>
         /// Fires if a camera is added
@@ -611,7 +608,7 @@ namespace EDSDK.NET
             {
                 SendSDKCommand(delegate
                 {
-                    Bitmap bmp = null;
+                    SKBitmap bmp = null;
                     IntPtr streamRef, jpgPointer = IntPtr.Zero;
                     ulong length = 0;
 
@@ -629,7 +626,7 @@ namespace EDSDK.NET
                         using (UnmanagedMemoryStream ums = new UnmanagedMemoryStream((byte*)jpgPointer.ToPointer(), (long)length, (long)length, FileAccess.Read))
                         {
                             //create bitmap from stream (it's a normal jpeg image)
-                            bmp = new Bitmap(ums);
+                            bmp = SKBitmap.Decode(ums);
                         }
                     }
 
@@ -653,7 +650,7 @@ namespace EDSDK.NET
         /// </summary>
         /// <param name="filepath">The filename of the image</param>
         /// <returns>The thumbnail of the image</returns>
-        public Bitmap GetFileThumb(string filepath)
+        public SKBitmap GetFileThumb(string filepath)
         {
             IntPtr stream;
             //create a filestream to given file
@@ -694,7 +691,7 @@ namespace EDSDK.NET
         /// <param name="img_stream">Image stream</param>
         /// <param name="imageSource">Type of image</param>
         /// <returns>The bitmap from the stream</returns>
-        private Bitmap GetImage(IntPtr img_stream, EdsImageSource imageSource)
+        private SKBitmap GetImage(IntPtr img_stream, EdsImageSource imageSource)
         {
             IntPtr stream = IntPtr.Zero;
             IntPtr img_ref = IntPtr.Zero;
@@ -724,28 +721,7 @@ namespace EDSDK.NET
                 //load image into the buffer
                 Error = EdsGetImage(img_ref, imageSource, EdsTargetImageType.RGB, imageInfo.EffectiveRect, outputSize, stream);
 
-                //create output bitmap
-                Bitmap bmp = new Bitmap(outputSize.width, outputSize.height, PixelFormat.Format24bppRgb);
-
-                //assign values to bitmap and make BGR from RGB (System.Drawing (i.e. GDI+) uses BGR)
-                unsafe
-                {
-                    BitmapData data = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadWrite, bmp.PixelFormat);
-
-                    byte* outPix = (byte*)data.Scan0;
-                    fixed (byte* inPix = buffer)
-                    {
-                        for (int i = 0; i < datalength; i += 3)
-                        {
-                            outPix[i] = inPix[i + 2];//Set B value with R value
-                            outPix[i + 1] = inPix[i + 1];//Set G value
-                            outPix[i + 2] = inPix[i];//Set R value with B value
-                        }
-                    }
-                    bmp.UnlockBits(data);
-                }
-
-                return bmp;
+                return SKBitmap.Decode(buffer);
             }
             finally
             {
