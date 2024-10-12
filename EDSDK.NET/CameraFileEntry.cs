@@ -1,8 +1,4 @@
-﻿using SkiaSharp;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Text;
+﻿using Emgu.CV;
 
 namespace EDSDK.NET
 {
@@ -22,7 +18,7 @@ namespace EDSDK.NET
         /// <summary>
         /// Thumbnail of this entry (might be null if not available)
         /// </summary>
-        public SKBitmap Thumbnail { get; private set; }
+        public Mat Thumbnail { get; private set; }
         /// <summary>
         /// Subentries of this entry (i.e. subfolders)
         /// </summary>
@@ -52,7 +48,7 @@ namespace EDSDK.NET
         /// Adds a thumbnail to this entry
         /// </summary>
         /// <param name="Thumbnail">The thumbnail to add</param>
-        public void AddThumb(SKBitmap Thumbnail)
+        public void AddThumb(Mat Thumbnail)
         {
             this.Thumbnail = Thumbnail;
         }
