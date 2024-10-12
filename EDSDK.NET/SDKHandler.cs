@@ -1,13 +1,10 @@
-﻿using System;
+﻿using Emgu.CV;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Drawing;
-using System.Threading;
-using System.Globalization;
-using System.Drawing.Imaging;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-
+using System.Threading;
 using static EDSDKLib.EDSDK;
 
 namespace EDSDK.NET
@@ -111,7 +108,7 @@ namespace EDSDK.NET
         public delegate void CameraAddedHandler();
         public delegate void ProgressHandler(int Progress);
         public delegate void StreamUpdate(Stream img);
-        public delegate void BitmapUpdate(Bitmap bmp);
+        public delegate void MatUpdate(Mat mat);
 
         /// <summary>
         /// Fires if a camera is added
@@ -132,7 +129,7 @@ namespace EDSDK.NET
         /// <summary>
         /// If an image is downloaded, this event fires with the downloaded image.
         /// </summary>
-        public event BitmapUpdate ImageDownloaded;
+        public event MatUpdate ImageDownloaded;
 
         #endregion
 
@@ -285,7 +282,7 @@ namespace EDSDK.NET
                 case ObjectEvent_DirItemRemoved:
                     break;
                 case ObjectEvent_DirItemRequestTransfer:
-                    DownloadImage(inRef, ImageSaveDirectory);
+                    DownloadImage(inRef);
                     break;
                 case ObjectEvent_DirItemRequestTransferDT:
                     break;
@@ -611,7 +608,7 @@ namespace EDSDK.NET
             {
                 SendSDKCommand(delegate
                 {
-                    Bitmap bmp = null;
+                    Mat mat = new Mat();
                     IntPtr streamRef, jpgPointer = IntPtr.Zero;
                     ulong length = 0;
 
@@ -628,8 +625,11 @@ namespace EDSDK.NET
                         //create a System.IO.Stream from the pointer
                         using (UnmanagedMemoryStream ums = new UnmanagedMemoryStream((byte*)jpgPointer.ToPointer(), (long)length, (long)length, FileAccess.Read))
                         {
-                            //create bitmap from stream (it's a normal jpeg image)
-                            bmp = new Bitmap(ums);
+                            byte[] buffer = new byte[ums.Length];
+                            ums.Read(buffer, 0, buffer.Length);
+
+                            // Dekoduj obraz z tablicy bajtów
+                            CvInvoke.Imdecode(buffer, Emgu.CV.CvEnum.ImreadModes.AnyColor, mat);
                         }
                     }
 
@@ -637,7 +637,7 @@ namespace EDSDK.NET
                     Error = EdsRelease(streamRef);
 
                     //Fire the event with the image
-                    if (ImageDownloaded != null) ImageDownloaded(bmp);
+                    if (ImageDownloaded != null) ImageDownloaded(mat);
                 }, true);
             }
             else
@@ -653,7 +653,7 @@ namespace EDSDK.NET
         /// </summary>
         /// <param name="filepath">The filename of the image</param>
         /// <returns>The thumbnail of the image</returns>
-        public Bitmap GetFileThumb(string filepath)
+        public Mat GetFileThumb(string filepath)
         {
             IntPtr stream;
             //create a filestream to given file
@@ -694,7 +694,7 @@ namespace EDSDK.NET
         /// <param name="img_stream">Image stream</param>
         /// <param name="imageSource">Type of image</param>
         /// <returns>The bitmap from the stream</returns>
-        private Bitmap GetImage(IntPtr img_stream, EdsImageSource imageSource)
+        private Mat GetImage(IntPtr img_stream, EdsImageSource imageSource)
         {
             IntPtr stream = IntPtr.Zero;
             IntPtr img_ref = IntPtr.Zero;
@@ -723,29 +723,10 @@ namespace EDSDK.NET
                 Error = EdsCreateMemoryStreamFromPointer(ptr, (uint)datalength, out stream);
                 //load image into the buffer
                 Error = EdsGetImage(img_ref, imageSource, EdsTargetImageType.RGB, imageInfo.EffectiveRect, outputSize, stream);
+                Mat mat = new Mat();
+                CvInvoke.Imdecode(buffer, Emgu.CV.CvEnum.ImreadModes.Color, mat);
 
-                //create output bitmap
-                Bitmap bmp = new Bitmap(outputSize.width, outputSize.height, PixelFormat.Format24bppRgb);
-
-                //assign values to bitmap and make BGR from RGB (System.Drawing (i.e. GDI+) uses BGR)
-                unsafe
-                {
-                    BitmapData data = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadWrite, bmp.PixelFormat);
-
-                    byte* outPix = (byte*)data.Scan0;
-                    fixed (byte* inPix = buffer)
-                    {
-                        for (int i = 0; i < datalength; i += 3)
-                        {
-                            outPix[i] = inPix[i + 2];//Set B value with R value
-                            outPix[i + 1] = inPix[i + 1];//Set G value
-                            outPix[i + 2] = inPix[i];//Set R value with B value
-                        }
-                    }
-                    bmp.UnlockBits(data);
-                }
-
-                return bmp;
+                return mat;
             }
             finally
             {
@@ -986,12 +967,20 @@ namespace EDSDK.NET
 
                         //release current evf image
                         if (EvfImageRef != IntPtr.Zero) { Error = EdsRelease(EvfImageRef); }
-
+                        Mat mat = new Mat();
                         //create stream to image
-                        unsafe { ums = new UnmanagedMemoryStream((byte*)jpgPointer.ToPointer(), (long)length, (long)length, FileAccess.Read); }
+                        unsafe
+                        {
+                            ums = new UnmanagedMemoryStream((byte*)jpgPointer.ToPointer(), (long)length, (long)length, FileAccess.Read);
+                            byte[] buffer = new byte[ums.Length];
+                            ums.Read(buffer, 0, buffer.Length);
+
+                            // Dekoduj obraz z tablicy bajtów
+                            CvInvoke.Imdecode(buffer, Emgu.CV.CvEnum.ImreadModes.AnyColor, mat);
+                        }
 
                         //fire the LiveViewUpdated event with the live view image stream
-                        if (LiveViewUpdated != null) LiveViewUpdated(ums);
+                        if (ImageDownloaded != null) ImageDownloaded(mat);
                         ums.Close();
                     }
 
