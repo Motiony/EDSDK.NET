@@ -149,6 +149,7 @@ namespace EDSDK.NET
             SDKCameraAddedEvent += new EdsCameraAddedHandler(SDKHandler_CameraAddedEvent);
             EdsSetCameraAddedHandler(SDKCameraAddedEvent, IntPtr.Zero);
 
+
             //subscribe to the camera events (for the C# events)
             SDKStateEvent += new EdsStateEventHandler(Camera_SDKStateEvent);
             SDKPropertyEvent += new EdsPropertyEventHandler(Camera_SDKPropertyEvent);
@@ -551,7 +552,7 @@ namespace EDSDK.NET
                     break;
                 case StateEvent_Shutdown:
                     CameraSessionOpen = false;
-                    if (LVThread.IsAlive) LVThread.Abort();
+                    if (LVThread != null && LVThread.IsAlive) LVThread.Abort();
                     if (CameraHasShutdown != null) CameraHasShutdown(this, new EventArgs());
                     break;
                 case StateEvent_ShutDownTimerUpdate:

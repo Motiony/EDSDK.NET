@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Text;
+﻿using System.Globalization;
 
 namespace EDSDK.NET
 {
@@ -141,7 +138,7 @@ namespace EDSDK.NET
         /// </summary>
         /// <param name="v">The ISO ID</param>
         /// <returns>the ISO string</returns>
-        public static string ISO(uint v)
+        public static string ISO(int v)
         {
             switch (v)
             {
@@ -193,7 +190,6 @@ namespace EDSDK.NET
                     return "ISO 51200";
                 case 0x00000098:
                     return "ISO 102400";
-                case 0xffffffff:
                 default:
                     return "N/A";
             }
