@@ -3,9 +3,6 @@ using System.Globalization;
 
 namespace EDSDK.NET
 {
-    /// <summary>
-    /// Helper to convert between ID and string camera values
-    /// </summary>
     public static class CameraValues
     {
         private static CultureInfo cInfo = new CultureInfo("en-US");
