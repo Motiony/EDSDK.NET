@@ -1,5 +1,5 @@
 ﻿
-namespace Canon.Eos.Framework
+namespace EDSDK.NET
 {
     public enum CameraErrorCodes : long
     {
@@ -146,6 +146,6 @@ namespace Canon.Eos.Framework
         TakePictureCardProtect = 0x00008D08,
 
 
-        LastGenericErrorPlusOne = 0x000000F5,        
+        LastGenericErrorPlusOne = 0x000000F5,
     }
 }
