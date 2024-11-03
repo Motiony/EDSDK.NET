@@ -220,14 +220,14 @@ namespace EDSDK.NET
                     StopLiveView();
                     LVThread.Join(1000);
                 }
-                SendSDKCommand(delegate { Error = EdsCloseSession(MainCamera.Ref); });
-                Error = EdsRelease(MainCamera.Ref);
-                MainCamera = null;
 
                 //Remove the event handler
                 EdsSetCameraStateEventHandler(MainCamera.Ref, StateEvent_All, null, MainCamera.Ref);
                 EdsSetObjectEventHandler(MainCamera.Ref, ObjectEvent_All, null, MainCamera.Ref);
                 EdsSetPropertyEventHandler(MainCamera.Ref, PropertyEvent_All, null, MainCamera.Ref);
+                SendSDKCommand(delegate { Error = EdsCloseSession(MainCamera.Ref); });
+                Error = EdsRelease(MainCamera.Ref);
+                MainCamera = null;
 
                 //close session and release camera
                 CameraSessionOpen = false;
