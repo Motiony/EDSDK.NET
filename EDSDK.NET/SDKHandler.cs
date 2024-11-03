@@ -100,13 +100,14 @@ namespace EDSDK.NET
         public event EdsProgressCallback SDKProgressCallbackEvent;
         public event EdsPropertyEventHandler SDKPropertyEvent;
         public event EdsStateEventHandler SDKStateEvent;
-        public event EventHandler<uint> SDKPropertyChangedEvent;
+        public event CameraPropertyChanged SDKPropertyChangedEvent;
         public event EventHandler<uint> SDKErrorEvent;
 
         #endregion
 
         #region Custom Events
 
+        public delegate void CameraPropertyChanged(uint property, uint eventType);
         public delegate void CameraAddedHandler();
         public delegate void ProgressHandler(int Progress);
         public delegate void StreamUpdate(Stream img);
@@ -219,6 +220,9 @@ namespace EDSDK.NET
                     StopLiveView();
                     LVThread.Join(1000);
                 }
+                SendSDKCommand(delegate { Error = EdsCloseSession(MainCamera.Ref); });
+                Error = EdsRelease(MainCamera.Ref);
+                MainCamera = null;
 
                 //Remove the event handler
                 EdsSetCameraStateEventHandler(MainCamera.Ref, StateEvent_All, null, MainCamera.Ref);
@@ -226,8 +230,6 @@ namespace EDSDK.NET
                 EdsSetPropertyEventHandler(MainCamera.Ref, PropertyEvent_All, null, MainCamera.Ref);
 
                 //close session and release camera
-                SendSDKCommand(delegate { Error = EdsCloseSession(MainCamera.Ref); });
-                uint c = EdsRelease(MainCamera.Ref);
                 CameraSessionOpen = false;
             }
         }
@@ -316,7 +318,7 @@ namespace EDSDK.NET
         private uint Camera_SDKProgressCallbackEvent(uint inPercent, IntPtr inContext, ref bool outCancel)
         {
             //Handle progress here
-            if (ProgressChanged != null) ProgressChanged((int)inPercent);
+            ProgressChanged?.Invoke((int)inPercent);
             return EDS_ERR_OK;
         }
 
@@ -348,6 +350,7 @@ namespace EDSDK.NET
                 case PropID_AEMode:
                     break;
                 case PropID_AEModeSelect:
+                    SDKPropertyChangedEvent?.Invoke(PropID_AEModeSelect, inEvent);
                     break;
                 case PropID_AFMode:
                     break;
@@ -356,10 +359,7 @@ namespace EDSDK.NET
                 case PropID_AtCapture_Flag:
                     break;
                 case PropID_Av:
-                    if (inEvent == PropertyEvent_PropertyDescChanged)
-                    {
-                        SDKPropertyChangedEvent?.Invoke(this, PropID_Av);
-                    }
+                    SDKPropertyChangedEvent?.Invoke(PropID_Av, inEvent);
                     break;
                 case PropID_AvailableShots:
                     break;
@@ -475,10 +475,7 @@ namespace EDSDK.NET
                 case PropID_ISOBracket:
                     break;
                 case PropID_ISOSpeed:
-                    if (inEvent == PropertyEvent_PropertyDescChanged)
-                    {
-                        SDKPropertyChangedEvent?.Invoke(this, PropID_ISOSpeed);
-                    }
+                    SDKPropertyChangedEvent?.Invoke(PropID_ISOSpeed, inEvent);
                     break;
                 case PropID_JpegQuality:
                     break;
@@ -523,20 +520,14 @@ namespace EDSDK.NET
                 case PropID_ToningEffect:
                     break;
                 case PropID_Tv:
-                    if (inEvent == PropertyEvent_PropertyDescChanged)
-                    {
-                        SDKPropertyChangedEvent?.Invoke(this, PropID_Tv);
-                    }
+                    SDKPropertyChangedEvent?.Invoke(PropID_Tv, inEvent);
                     break;
                 case PropID_Unknown:
                     break;
                 case PropID_WBCoeffs:
                     break;
                 case PropID_WhiteBalance:
-                    if (inEvent == PropertyEvent_PropertyDescChanged)
-                    {
-                        SDKPropertyChangedEvent?.Invoke(this, PropID_WhiteBalance);
-                    }
+                    SDKPropertyChangedEvent?.Invoke(PropID_WhiteBalance, inEvent);
                     break;
                 case PropID_WhiteBalanceBracket:
                     break;
@@ -573,7 +564,7 @@ namespace EDSDK.NET
                 case StateEvent_Shutdown:
                     CameraSessionOpen = false;
                     if (LVThread != null && LVThread.IsAlive) LVThread.Abort();
-                    if (CameraHasShutdown != null) CameraHasShutdown(this, new EventArgs());
+                    CameraHasShutdown?.Invoke(this, EventArgs.Empty);
                     break;
                 case StateEvent_ShutDownTimerUpdate:
                     break;
@@ -811,8 +802,7 @@ namespace EDSDK.NET
             {
                 if (MainCamera.Ref != IntPtr.Zero)
                 {
-                    uint property = 0;
-                    Error = EdsGetPropertyData(MainCamera.Ref, PropID, 0, out property);
+                    Error = EdsGetPropertyData(MainCamera.Ref, PropID, 0, out uint property);
                     return cameraValues.TryGetValue(property, out string value) ? value : string.Empty;
                 }
                 else { throw new ArgumentNullException("Camera or camera reference is null/zero"); }
@@ -824,7 +814,7 @@ namespace EDSDK.NET
         /// </summary>
         /// <param name="PropID">The property ID</param>
         /// <returns>The current setting of the camera</returns>
-        public string GetStringSetting(uint PropID)
+        public string GetStringSetting(uint PropID, int atempts = 3)
         {
             if (MainCamera.Ref != IntPtr.Zero)
             {
