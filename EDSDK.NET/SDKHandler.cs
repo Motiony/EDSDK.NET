@@ -227,9 +227,6 @@ namespace EDSDK.NET
                 EdsSetPropertyEventHandler(MainCamera.Ref, PropertyEvent_All, null, MainCamera.Ref);
                 SendSDKCommand(delegate { Error = EdsCloseSession(MainCamera.Ref); });
                 Error = EdsRelease(MainCamera.Ref);
-                MainCamera = null;
-
-                //close session and release camera
                 CameraSessionOpen = false;
             }
         }
