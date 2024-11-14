@@ -12,17 +12,17 @@ jobs:
       CommitsSinceVersionSource: ${{ steps.gitversion.outputs.CommitsSinceVersionSource }} 
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 0 # fetch-depth is needed for GitVersion
         
     # Install and calculate the new version with GitVersion  
     - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@v0.9.7
+      uses: gittools/actions/gitversion/setup@v0.9.14
       with:
         versionSpec: 5.x
     - name: Determine Version
-      uses: gittools/actions/gitversion/execute@v0.9.7
+      uses: gittools/actions/gitversion/execute@v0.9.14
       id: gitversion # step id used as reference for output values
     - name: Display GitVersion outputs
       run: |
@@ -31,13 +31,13 @@ jobs:
     
     # Build/pack the project
     - name: Setup .NET
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v3
       with:
         dotnet-version: '3.1.x' # Ustawienie wersji .NET SDK kompatybilnej z netstandard2.0
     - name: Build and Pack NuGet package
       run: dotnet pack src/services/Florage.Shared/Florage.Shared.csproj -p:Version='${{ steps.gitversion.outputs.SemVer }}' -c Release
     - name: Upload NuGet package to GitHub
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: nugetPackage
         path: src/services/Florage.Shared/bin/Release/
@@ -50,7 +50,7 @@ jobs:
     steps:  
     # Push NuGet package to GitHub packages
     - name: Download nuget package artifact
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: nugetPackage
     - name: Prep packages
