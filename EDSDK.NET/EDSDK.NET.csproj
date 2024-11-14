@@ -3,6 +3,13 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	<Version>1.0.0</Version>
+	<AssemblyVersion>1.0.0.0</AssemblyVersion>
+	<FileVersion>1.0.0.0</FileVersion>
+	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	<Title>Motiony.EDSDK</Title>
+	<PackageProjectUrl>https://github.com/Motiony/EDSDK.NET.git</PackageProjectUrl>
+	<RepositoryUrl>https://github.com/Motiony/EDSDK.NET.git</RepositoryUrl>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
