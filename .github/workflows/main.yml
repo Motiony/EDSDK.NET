@@ -1,0 +1,36 @@
+name: dotnet package
+
+on: [push]
+
+env:
+  PROJECT_FOLDER: EDSDK.NET
+  PROJECT: EDSDK.NET.csproj
+  NUGET_REPO_URL: https://nuget.pkg.github.com/MrRadian/index.json
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dotnet-version: [ '8.0.x' ]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install Dependencies
+        run: dotnet restore ${{ env.PROJECT_FOLDER }}/${{ env.PROJECT }}
+
+      - name: Build Project
+        run: dotnet build ${{ env.PROJECT_FOLDER }}/${{ env.PROJECT }} --configuration Release
+
+      - name: Create the package
+        run: dotnet pack --configuration Release ${{ env.PROJECT_FOLDER }}/${{ env.PROJECT }}
+
+      - name: Publish the package to Repository
+        run: dotnet nuget push ${{ env.PROJECT_FOLDER }}/bin/Release/*.nupkg --api-key ${{ secrets.MRRADIANNUGETSECRET }} --source ${{ env.NUGET_REPO_URL }}
