@@ -3,9 +3,9 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-	<Version>1.0.1</Version>
-	<AssemblyVersion>1.0.1.0</AssemblyVersion>
-	<FileVersion>1.0.1.0</FileVersion>
+	<Version>1.0.1.1</Version>
+	<AssemblyVersion>1.0.1.1</AssemblyVersion>
+	<FileVersion>1.0.1.1</FileVersion>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	<Title>Motiony.EDSDK</Title>
 	<PackageProjectUrl>https://github.com/Motiony/EDSDK.NET.git</PackageProjectUrl>
