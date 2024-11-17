@@ -5,7 +5,7 @@ on: [push]
 env:
   PROJECT_FOLDER: EDSDK.NET
   PROJECT: EDSDK.NET.csproj
-  NUGET_REPO_URL: https://nuget.pkg.github.com/MrRadian/index.json
+  NUGET_REPO_URL: https://nuget.pkg.github.com/Motiony/index.json
 
 jobs:
   build:
@@ -13,15 +13,15 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        dotnet-version: [ '8.0.x' ]
+        dotnet-version: [ '3.1.x' ]
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: ${{ matrix.dotnet-version }}
 
       - name: Install Dependencies
         run: dotnet restore ${{ env.PROJECT_FOLDER }}/${{ env.PROJECT }}
@@ -33,7 +33,7 @@ jobs:
         run: dotnet test Tests/EDSDK.NET.Tests/EDSDK.NET.Tests.csproj
 
       - name: Create the package
-        run: dotnet pack --configuration Release ${{ env.PROJECT_FOLDER }}/${{ env.PROJECT }}
+        run: dotnet pack ${{ env.PROJECT_FOLDER }}/${{ env.PROJECT }} --configuration Release
 
       - name: Publish the package to Repository
         run: dotnet nuget push ${{ env.PROJECT_FOLDER }}/bin/Release/*.nupkg --api-key ${{ secrets.MRRADIANNUGETSECRET }} --source ${{ env.NUGET_REPO_URL }}

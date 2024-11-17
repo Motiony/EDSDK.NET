@@ -66,7 +66,7 @@ namespace EDSDK.NET
             {
                 if (value != EDS_ERR_OK)
                 {
-                    throw new Exception("SDK Error: 0x" + value.ToString("X"));
+                    SDKErrorEvent?.Invoke(this, value);
                 }
             }
         }
@@ -100,11 +100,14 @@ namespace EDSDK.NET
         public event EdsProgressCallback SDKProgressCallbackEvent;
         public event EdsPropertyEventHandler SDKPropertyEvent;
         public event EdsStateEventHandler SDKStateEvent;
+        public event CameraPropertyChanged SDKPropertyChangedEvent;
+        public event EventHandler<uint> SDKErrorEvent;
 
         #endregion
 
         #region Custom Events
 
+        public delegate void CameraPropertyChanged(uint property, uint eventType);
         public delegate void CameraAddedHandler();
         public delegate void ProgressHandler(int Progress);
         public delegate void StreamUpdate(Stream img);
@@ -137,6 +140,8 @@ namespace EDSDK.NET
 
         #region Basic SDK and Session handling
 
+        private readonly object lockObject = new object();
+
         /// <summary>
         /// Initializes the SDK and adds events
         /// </summary>
@@ -148,6 +153,7 @@ namespace EDSDK.NET
             //subscribe to camera added event (the C# event and the SDK event)
             SDKCameraAddedEvent += new EdsCameraAddedHandler(SDKHandler_CameraAddedEvent);
             EdsSetCameraAddedHandler(SDKCameraAddedEvent, IntPtr.Zero);
+
 
             //subscribe to the camera events (for the C# events)
             SDKStateEvent += new EdsStateEventHandler(Camera_SDKStateEvent);
@@ -219,10 +225,8 @@ namespace EDSDK.NET
                 EdsSetCameraStateEventHandler(MainCamera.Ref, StateEvent_All, null, MainCamera.Ref);
                 EdsSetObjectEventHandler(MainCamera.Ref, ObjectEvent_All, null, MainCamera.Ref);
                 EdsSetPropertyEventHandler(MainCamera.Ref, PropertyEvent_All, null, MainCamera.Ref);
-
-                //close session and release camera
                 SendSDKCommand(delegate { Error = EdsCloseSession(MainCamera.Ref); });
-                uint c = EdsRelease(MainCamera.Ref);
+                Error = EdsRelease(MainCamera.Ref);
                 CameraSessionOpen = false;
             }
         }
@@ -311,7 +315,7 @@ namespace EDSDK.NET
         private uint Camera_SDKProgressCallbackEvent(uint inPercent, IntPtr inContext, ref bool outCancel)
         {
             //Handle progress here
-            if (ProgressChanged != null) ProgressChanged((int)inPercent);
+            ProgressChanged?.Invoke((int)inPercent);
             return EDS_ERR_OK;
         }
 
@@ -343,6 +347,7 @@ namespace EDSDK.NET
                 case PropID_AEMode:
                     break;
                 case PropID_AEModeSelect:
+                    SDKPropertyChangedEvent?.Invoke(PropID_AEModeSelect, inEvent);
                     break;
                 case PropID_AFMode:
                     break;
@@ -351,6 +356,7 @@ namespace EDSDK.NET
                 case PropID_AtCapture_Flag:
                     break;
                 case PropID_Av:
+                    SDKPropertyChangedEvent?.Invoke(PropID_Av, inEvent);
                     break;
                 case PropID_AvailableShots:
                     break;
@@ -466,6 +472,7 @@ namespace EDSDK.NET
                 case PropID_ISOBracket:
                     break;
                 case PropID_ISOSpeed:
+                    SDKPropertyChangedEvent?.Invoke(PropID_ISOSpeed, inEvent);
                     break;
                 case PropID_JpegQuality:
                     break;
@@ -510,12 +517,14 @@ namespace EDSDK.NET
                 case PropID_ToningEffect:
                     break;
                 case PropID_Tv:
+                    SDKPropertyChangedEvent?.Invoke(PropID_Tv, inEvent);
                     break;
                 case PropID_Unknown:
                     break;
                 case PropID_WBCoeffs:
                     break;
                 case PropID_WhiteBalance:
+                    SDKPropertyChangedEvent?.Invoke(PropID_WhiteBalance, inEvent);
                     break;
                 case PropID_WhiteBalanceBracket:
                     break;
@@ -551,8 +560,8 @@ namespace EDSDK.NET
                     break;
                 case StateEvent_Shutdown:
                     CameraSessionOpen = false;
-                    if (LVThread.IsAlive) LVThread.Abort();
-                    if (CameraHasShutdown != null) CameraHasShutdown(this, new EventArgs());
+                    if (LVThread != null && LVThread.IsAlive) LVThread.Abort();
+                    CameraHasShutdown?.Invoke(this, EventArgs.Empty);
                     break;
                 case StateEvent_ShutDownTimerUpdate:
                     break;
@@ -772,13 +781,29 @@ namespace EDSDK.NET
         /// <returns>The current setting of the camera</returns>
         public uint GetSetting(uint PropID)
         {
-            if (MainCamera.Ref != IntPtr.Zero)
+            lock (lockObject)
             {
-                uint property = 0;
-                Error = EdsGetPropertyData(MainCamera.Ref, PropID, 0, out property);
-                return property;
+                if (MainCamera.Ref != IntPtr.Zero)
+                {
+                    uint property = 0;
+                    Error = EdsGetPropertyData(MainCamera.Ref, PropID, 0, out property);
+                    return property;
+                }
+                else { throw new ArgumentNullException("Camera or camera reference is null/zero"); }
             }
-            else { throw new ArgumentNullException("Camera or camera reference is null/zero"); }
+        }
+
+        public string GetSetting(uint PropID, IDictionary<uint, string> cameraValues)
+        {
+            lock (lockObject)
+            {
+                if (MainCamera.Ref != IntPtr.Zero)
+                {
+                    Error = EdsGetPropertyData(MainCamera.Ref, PropID, 0, out uint property);
+                    return cameraValues.TryGetValue(property, out string value) ? value : string.Empty;
+                }
+                else { throw new ArgumentNullException("Camera or camera reference is null/zero"); }
+            }
         }
 
         /// <summary>
@@ -786,7 +811,7 @@ namespace EDSDK.NET
         /// </summary>
         /// <param name="PropID">The property ID</param>
         /// <returns>The current setting of the camera</returns>
-        public string GetStringSetting(uint PropID)
+        public string GetStringSetting(uint PropID, int atempts = 3)
         {
             if (MainCamera.Ref != IntPtr.Zero)
             {
@@ -846,19 +871,43 @@ namespace EDSDK.NET
         /// <param name="Value">The value which will be set</param>
         public void SetSetting(uint PropID, uint Value)
         {
-            if (MainCamera.Ref != IntPtr.Zero)
+            lock (lockObject)
             {
-                SendSDKCommand(delegate
+                if (MainCamera.Ref != IntPtr.Zero)
                 {
-                    int propsize;
-                    EdsDataType proptype;
-                    //get size of property
-                    Error = EdsGetPropertySize(MainCamera.Ref, PropID, 0, out proptype, out propsize);
-                    //set given property
-                    Error = EdsSetPropertyData(MainCamera.Ref, PropID, 0, propsize, Value);
-                });
+                    SendSDKCommand(delegate
+                    {
+                        int propsize;
+                        EdsDataType proptype;
+                        //get size of property
+                        Error = EdsGetPropertySize(MainCamera.Ref, PropID, 0, out proptype, out propsize);
+                        //set given property
+                        Error = EdsSetPropertyData(MainCamera.Ref, PropID, 0, propsize, Value);
+                    });
+                }
+                else { throw new ArgumentNullException("Camera or camera reference is null/zero"); }
             }
-            else { throw new ArgumentNullException("Camera or camera reference is null/zero"); }
+        }
+
+        public void SetSetting(uint PropID, string Value, IDictionary<uint, string> cameraValues)
+        {
+            lock (lockObject)
+            {
+                if (MainCamera.Ref != IntPtr.Zero && cameraValues.Any(v => v.Value == Value))
+                {
+                    var cameraValue = cameraValues.FirstOrDefault(v => v.Value == Value);
+                    SendSDKCommand(delegate
+                    {
+                        int propsize;
+                        EdsDataType proptype;
+                        //get size of property
+                        Error = EdsGetPropertySize(MainCamera.Ref, PropID, 0, out proptype, out propsize);
+                        //set given property
+                        Error = EdsSetPropertyData(MainCamera.Ref, PropID, 0, propsize, cameraValue.Key);
+                    });
+                }
+                else { throw new ArgumentNullException("Camera or camera reference is null/zero"); }
+            }
         }
 
         /// <summary>
