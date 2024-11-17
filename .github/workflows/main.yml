@@ -5,7 +5,7 @@ on: [push]
 env:
   PROJECT_FOLDER: EDSDK.NET
   PROJECT: EDSDK.NET.csproj
-  NUGET_REPO_URL: https://nuget.pkg.github.com/MrRadian/index.json
+  NUGET_REPO_URL: https://nuget.pkg.github.com/Motiony/index.json
 
 jobs:
   build:
