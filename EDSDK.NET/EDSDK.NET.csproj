@@ -18,10 +18,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\lib\netstandard2.0\EDSDK.dll">
+    <None Include="..\lib\EDSDK.dll" Link="lib\EDSDK.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="..\lib\netstandard2.0\EdsImage.dll">
+    <None Include="..\lib\EdsImage.dll" Link="lib\EdsImage.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
@@ -31,6 +31,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="lib\netstandard2.0\" />
+    <Folder Include="lib\" />
   </ItemGroup>
 </Project>
