@@ -18,10 +18,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="..\lib\EDSDK.dll">
+    <Content Include="..\lib\netstandard2.0\EDSDK.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\lib\EdsImage.dll">
+    <Content Include="..\lib\netstandard2.0\EdsImage.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
