@@ -18,10 +18,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\lib\EDSDK.dll" Link="lib\EDSDK.dll">
+    <None Include="../lib/EDSDK.dll" Link="lib/EDSDK.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="..\lib\EdsImage.dll" Link="lib\EdsImage.dll">
+    <None Include="../lib/EdsImage.dll" Link="lib/EdsImage.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
