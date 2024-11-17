@@ -18,12 +18,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="../lib/EDSDK.dll" Link="lib/EDSDK.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="../lib/EdsImage.dll" Link="lib/EdsImage.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+	<None Include="..\lib\EDSDK.dll" Link="\lib\EDSDK.dll">
+		<Pack>true</Pack>
+		<PackagePath>lib</PackagePath>
+		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	</None>
+	<None Include="..\lib\EdsImage.dll" Link="\lib\EdsImage.dll">
+		<Pack>true</Pack>
+		<PackagePath>lib</PackagePath>
+		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	</None>
   </ItemGroup>
 
   <ItemGroup>
