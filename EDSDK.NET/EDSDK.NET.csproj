@@ -3,13 +3,14 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-	<Version>1.0.1</Version>
-	<AssemblyVersion>1.0.1.0</AssemblyVersion>
-	<FileVersion>1.0.1.0</FileVersion>
+	<Version>1.0.1.5</Version>
+	<AssemblyVersion>1.0.1.5</AssemblyVersion>
+	<FileVersion>1.0.1.5</FileVersion>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	<Title>Motiony.EDSDK</Title>
 	<PackageProjectUrl>https://github.com/Motiony/EDSDK.NET.git</PackageProjectUrl>
 	<RepositoryUrl>https://github.com/Motiony/EDSDK.NET.git</RepositoryUrl>
+    <Authors>Motiony</Authors>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -17,20 +18,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="PInvoke\" />
+    <Content Include="EDSDK.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="EdsImage.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Emgu.CV" Version="4.8.0.5324" />
   </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Resources\EDSDK.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\EdsImage.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>
