@@ -22,17 +22,14 @@ jobs:
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
 
-      - name: Install Dependencies
-        run: dotnet restore ${{ env.SOLUTION }}
-
       - name: Build Project
         run: dotnet build ${{ env.SOLUTION }} --configuration Release
 
       - name: Tests
-        run: dotnet test Tests/EDSDK.NET.Tests/EDSDK.NET.Tests.csproj --no-restore
+        run: dotnet test Tests/EDSDK.NET.Tests/EDSDK.NET.Tests.csproj --no-restore --no-build
 
       - name: Create the package
-        run: dotnet pack EDSDK.NET/EDSDK.NET.csproj --configuration Release --no-restore
+        run: dotnet pack EDSDK.NET/EDSDK.NET.csproj --configuration Release --no-restore --no-build
 
       - name: Publish the package to Repository
-        run: dotnet nuget push EDSDK.NET/bin/Release/*.nupkg --api-key ${{ secrets.MRRADIANNUGETSECRET }} --source ${{ env.NUGET_REPO_URL }}
+        run: dotnet nuget push "*.nupkg" --api-key ${{ secrets.MRRADIANNUGETSECRET }} --source ${{ env.NUGET_REPO_URL }}
