@@ -3,8 +3,7 @@ name: dotnet package
 on: [push]
 
 env:
-  PROJECT_FOLDER: EDSDK.NET
-  PROJECT: EDSDK.NET.csproj
+  SOLUTION: EDSDK.NET.sln
   NUGET_REPO_URL: https://nuget.pkg.github.com/Motiony/index.json
 
 jobs:
@@ -24,16 +23,16 @@ jobs:
           dotnet-version: ${{ matrix.dotnet-version }}
 
       - name: Install Dependencies
-        run: dotnet restore ${{ env.PROJECT_FOLDER }}/${{ env.PROJECT }}
+        run: dotnet restore ${{ env.SOLUTION }}
 
       - name: Build Project
-        run: dotnet build ${{ env.PROJECT_FOLDER }}/${{ env.PROJECT }} --configuration Release
+        run: dotnet build ${{ env.SOLUTION }} --configuration Release
 
       - name: Tests
-        run: dotnet test Tests/EDSDK.NET.Tests/EDSDK.NET.Tests.csproj --no-restore
+        run: dotnet test Tests/EDSDK.NET.Tests/EDSDK.NET.Tests.csproj
 
       - name: Create the package
-        run: dotnet pack ${{ env.PROJECT_FOLDER }}/${{ env.PROJECT }} --configuration Release --no-restore
+        run: dotnet pack EDSDK/EDSDK.csproj --configuration Release --no-restore
 
       - name: Publish the package to Repository
         run: dotnet nuget push ${{ env.PROJECT_FOLDER }}/bin/Release/*.nupkg --api-key ${{ secrets.MRRADIANNUGETSECRET }} --source ${{ env.NUGET_REPO_URL }}
