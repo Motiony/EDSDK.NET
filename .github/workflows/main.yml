@@ -32,4 +32,4 @@ jobs:
         run: dotnet pack EDSDK.NET/EDSDK.NET.csproj --configuration Release --no-restore --no-build
 
       - name: Publish the package to Repository
-        run: dotnet nuget push "*.nupkg" --api-key ${{ secrets.MRRADIANNUGETSECRET }} --source ${{ env.NUGET_REPO_URL }}
+        run: dotnet nuget push .\bin\Release\*.nupkg --api-key ${{ secrets.MRRADIANNUGETSECRET }} --source ${{ env.NUGET_REPO_URL }}
