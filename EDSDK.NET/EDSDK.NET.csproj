@@ -1,15 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-	<Version>1.0.1.5</Version>
-	<AssemblyVersion>1.0.1.5</AssemblyVersion>
-	<FileVersion>1.0.1.5</FileVersion>
-	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-	<Title>Motiony.EDSDK</Title>
-	<PackageProjectUrl>https://github.com/Motiony/EDSDK.NET.git</PackageProjectUrl>
-	<RepositoryUrl>https://github.com/Motiony/EDSDK.NET.git</RepositoryUrl>
+    <Version>1.0.1.6</Version>
+    <AssemblyVersion>1.0.1.6</AssemblyVersion>
+    <FileVersion>1.0.1.6</FileVersion>
+    <PackageProjectUrl>https://github.com/Motiony/EDSDK.NET.git</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Motiony/EDSDK.NET.git</RepositoryUrl>
     <Authors>Motiony</Authors>
   </PropertyGroup>
 
@@ -18,23 +16,26 @@
   </PropertyGroup>
 
   <ItemGroup>
-	<None Include="..\lib\EDSDK.dll" Link="\lib\EDSDK.dll">
-		<Pack>true</Pack>
-		<PackagePath>lib</PackagePath>
-		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	</None>
-	<None Include="..\lib\EdsImage.dll" Link="\lib\EdsImage.dll">
-		<Pack>true</Pack>
-		<PackagePath>lib</PackagePath>
-		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	</None>
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Emgu.CV" Version="4.8.0.5324" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="lib\" />
+    <Content Include="lib\EDSDK.dll">
+      <Pack>true</Pack>
+      <PackagePath>lib\$(TargetFramework)</PackagePath>
+    </Content>
+    <ContentWithTargetPath Include="lib\EDSDK.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>EDSDK.dll</TargetPath>
+    </ContentWithTargetPath>
+    <Content Include="lib\EdsImage.dll">
+      <Pack>true</Pack>
+      <PackagePath>lib\$(TargetFramework)</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <ContentWithTargetPath Include="lib\EdsImage.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>EdsImage.dll</TargetPath>
+    </ContentWithTargetPath>
   </ItemGroup>
 </Project>
