@@ -26,7 +26,7 @@ jobs:
         run: dotnet build ${{ env.SOLUTION }} --configuration Release
 
       - name: Tests
-        run: dotnet test Tests/EDSDK.NET.Tests/EDSDK.NET.Tests.csproj --no-restore --no-build
+        run: dotnet test ${{ env.SOLUTION }} --configuration Release --no-restore --no-build
 
       - name: Create the package
         run: dotnet pack EDSDK.NET/EDSDK.NET.csproj --configuration Release --no-restore --no-build
