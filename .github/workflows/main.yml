@@ -29,10 +29,10 @@ jobs:
         run: dotnet build ${{ env.SOLUTION }} --configuration Release
 
       - name: Tests
-        run: dotnet test Tests/EDSDK.NET.Tests/EDSDK.NET.Tests.csproj
+        run: dotnet test Tests/EDSDK.NET.Tests/EDSDK.NET.Tests.csproj --no-restore
 
       - name: Create the package
-        run: dotnet pack EDSDK/EDSDK.csproj --configuration Release --no-restore
+        run: dotnet pack EDSDK.NET/EDSDK.NET.csproj --configuration Release --no-restore
 
       - name: Publish the package to Repository
         run: dotnet nuget push ${{ env.PROJECT_FOLDER }}/bin/Release/*.nupkg --api-key ${{ secrets.MRRADIANNUGETSECRET }} --source ${{ env.NUGET_REPO_URL }}
