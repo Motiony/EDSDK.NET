@@ -3,17 +3,16 @@ name: dotnet package
 on: [push]
 
 env:
-  PROJECT_FOLDER: EDSDK.NET
-  PROJECT: EDSDK.NET.csproj
+  SOLUTION: EDSDK.NET.sln
   NUGET_REPO_URL: https://nuget.pkg.github.com/Motiony/index.json
 
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     strategy:
       matrix:
-        dotnet-version: [ '3.1.x' ]
+        dotnet-version: [ '8.0.x' ]
 
     steps:
       - uses: actions/checkout@v4
@@ -23,14 +22,14 @@ jobs:
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
 
-      - name: Install Dependencies
-        run: dotnet restore ${{ env.PROJECT_FOLDER }}/${{ env.PROJECT }}
-
       - name: Build Project
-        run: dotnet build ${{ env.PROJECT_FOLDER }}/${{ env.PROJECT }} --configuration Release
+        run: dotnet build ${{ env.SOLUTION }} --configuration Release
+
+      - name: Tests
+        run: dotnet test ${{ env.SOLUTION }} --configuration Release --no-restore --no-build
 
       - name: Create the package
-        run: dotnet pack ${{ env.PROJECT_FOLDER }}/${{ env.PROJECT }} --configuration Release
+        run: dotnet pack EDSDK.NET/EDSDK.NET.csproj --configuration Release --no-restore --no-build
 
       - name: Publish the package to Repository
-        run: dotnet nuget push ${{ env.PROJECT_FOLDER }}/bin/Release/*.nupkg --api-key ${{ secrets.MRRADIANNUGETSECRET }} --source ${{ env.NUGET_REPO_URL }}
+        run: dotnet nuget push .\EDSDK.NET\bin\Release\*.nupkg --api-key ${{ secrets.MRRADIANNUGETSECRET }} --source ${{ env.NUGET_REPO_URL }}
